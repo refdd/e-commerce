@@ -1,8 +1,16 @@
 import express from "express";
-import { login, logout, signup } from "../controllers/auth.controller.js";
+import {
+  login,
+  logout,
+  signup,
+  refreshToken,
+  getProfile,
+} from "../controllers/auth.controller.js";
 const routes = express.Router();
 
-routes.get("/signup", signup);
-routes.get("/login", login);
-routes.get("/logout", logout);
+routes.post("/signup", signup);
+routes.post("/login", login);
+routes.post("/logout", logout);
+routes.post("/refresh-token", refreshToken);
+routes.get("/getProfile", getProfile);
 export default routes;
