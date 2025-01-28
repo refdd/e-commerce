@@ -1,3 +1,5 @@
+import Product from "../models/product.model.js";
+
 export const addToCart = async (req, res, next) => {
   try {
     const productId = req.params.productId;
@@ -54,6 +56,12 @@ export const updateCartProductQuantity = async (req, res, next) => {
   }
 };
 
-export const getCartProducts = (req, res, next) => {};
+export const getCartProducts = (req, res, next) => {
+  try {
+    const products = Product.find({ _id: { $in: req.user.cartItems } });
+  } catch (error) {
+    return res.status(404).json({ message: "Cart is empty" });
+  }
+};
 
-export const checkoutCart = (req, res, next) => {};
+export const checkoutCart = (req, res, next) => { };
