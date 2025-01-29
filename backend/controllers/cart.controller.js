@@ -59,6 +59,14 @@ export const updateCartProductQuantity = async (req, res, next) => {
 export const getCartProducts = (req, res, next) => {
   try {
     const products = Product.find({ _id: { $in: req.user.cartItems } });
+    //  add quantity to each product
+    const cartItems = products.map(product => {
+      const item = req.user.cartItems.find(item => item.id === product.id);
+      return {
+        ...product.toJSON(), quantity: item.quantity
+      }
+    })
+    res.json(cartItems);
   } catch (error) {
     return res.status(404).json({ message: "Cart is empty" });
   }
