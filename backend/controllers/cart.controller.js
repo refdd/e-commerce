@@ -2,9 +2,11 @@ import Product from "../models/product.model.js";
 
 export const addToCart = async (req, res, next) => {
   try {
-    const productId = req.params.productId;
+    const { productId } = req.body;
     const user = req.user;
-    let existingItem = req.user.cartItems.find((item) => item.id === productId);
+    let existingItem = req.user.cartItems.find(
+      (item) => item?.id === productId
+    );
     if (existingItem) {
       existingItem.quantity++;
     } else {
@@ -13,7 +15,7 @@ export const addToCart = async (req, res, next) => {
     await user.save();
     res.json(user.cartItems);
   } catch (error) {
-    return res.status(400).json({ message: "Invalid product ID" });
+    return res.status(400).json({ message: error.message });
   }
 };
 
@@ -24,11 +26,13 @@ export const removeAllFromCart = async (req, res, next) => {
     if (!productId) {
       user.cartItems = [];
     } else {
-      user.cartItems = user.cartItems.filter((item) => item.id !== productId);
+      user.cartItems = user.cartItems.filter((item) => item?.id !== productId);
     }
     await user.save();
     res.json(user.cartItems);
   } catch (error) {
+    console.log("Error in removeAllFromCart controller", error.message);
+
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -38,10 +42,12 @@ export const updateCartProductQuantity = async (req, res, next) => {
     const { id: productId } = req.params;
     const { quantity } = req.body;
     const user = req.user;
-    const existingItem = user.cartItems.find((item) => item.id == productId);
+    const existingItem = user.cartItems.find((item) => item?.id == productId);
     if (existingItem) {
       if (quantity === 0) {
-        user.cartItems = user.cartItems.filter((item) => item.id !== productId);
+        user.cartItems = user.cartItems.filter(
+          (item) => item?.id !== productId
+        );
         await user.save();
         return res.json(user.cartItems);
       }
@@ -52,24 +58,28 @@ export const updateCartProductQuantity = async (req, res, next) => {
       return res.status(404).json({ message: "Product not found in cart" });
     }
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    console.log("Error in updateCartProductQuantity controller", error.message);
+    return res.status(500).json({ message: error.message });
   }
 };
 
-export const getCartProducts = (req, res, next) => {
+export const getCartProducts = async (req, res) => {
   try {
-    const products = Product.find({ _id: { $in: req.user.cartItems } });
-    //  add quantity to each product
-    const cartItems = products.map(product => {
-      const item = req.user.cartItems.find(item => item.id === product.id);
-      return {
-        ...product.toJSON(), quantity: item.quantity
-      }
-    })
+    const products = await Product.find({ _id: { $in: req.user.cartItems } });
+
+    // add quantity for each product
+    const cartItems = products.map((product) => {
+      const item = req.user.cartItems.find(
+        (cartItem) => cartItem?.id === product?.id
+      );
+      return { ...product.toJSON(), quantity: item.quantity };
+    });
+
     res.json(cartItems);
   } catch (error) {
-    return res.status(404).json({ message: "Cart is empty" });
+    console.log("Error in getCartProducts controller", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-export const checkoutCart = (req, res, next) => { };
+export const checkoutCart = (req, res, next) => {};
